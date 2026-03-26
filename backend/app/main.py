@@ -104,9 +104,9 @@ async def root():
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle general exceptions"""
+    tb_str = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
     logger.error(
-        f"Unhandled exception on {request.method} {request.url.path}: "
-        f"{traceback.format_exc()}"
+        f"Unhandled exception on {request.method} {request.url.path}: {tb_str}"
     )
     return JSONResponse(
         status_code=500,
