@@ -52,7 +52,7 @@ services:
       DB_NAME: ${DB_NAME:-medical_diagnosis}
       VECTOR_DB_HOST: redis
       DEBUG: ${DEBUG:-False}
-      SECRET_KEY: ${SECRET_KEY:-change-me-before-deploying}
+      SECRET_KEY: ${SECRET_KEY:?SECRET_KEY must be set}
       MODEL_DEVICE: cpu
       PYTHONUNBUFFERED: 1
     ports:
