@@ -92,10 +92,13 @@ Medical Diagnosis Pipeline is a **production-grade** full-stack application desi
 #### 1. Clone & Setup
 ```bash
 git clone https://github.com/Nj-1111/Medical-Dashboard.git
-cd medical-diagnosis-pipeline
+cd Medical-Dashboard
 
 # Copy environment template
 cp backend/.env.example backend/.env
+
+# For local development without a GPU, set MODEL_DEVICE=cpu in backend/.env
+# Azure fields (AZURE_*) are optional and not required for local development
 ```
 
 #### 2. Start with Docker Compose
@@ -124,6 +127,12 @@ cd backend
 python -m venv venv
 source venv/bin/activate  # or `venv\Scripts\activate` on Windows
 pip install -r requirements.txt
+
+# Copy and edit the environment file
+cp .env.example .env
+# Set MODEL_DEVICE=cpu if you don't have a CUDA-capable GPU
+# Azure fields (AZURE_*) can be left as-is for local dev
+
 python -m app.main
 ```
 
@@ -133,6 +142,8 @@ cd frontend
 npm install
 npm start
 ```
+
+> **Windows shortcut**: Run `start.bat` from the repo root to start all services with Docker in one click.
 
 ---
 
@@ -193,7 +204,7 @@ curl -X POST http://localhost:8000/api/v1/inference/models/switch-llm \
 ## 📦 Project Structure
 
 ```
-medical-diagnosis-pipeline/
+Medical-Dashboard/
 │
 ├── backend/
 │   ├── app/

@@ -6,6 +6,7 @@
 - Node.js 20+
 - Docker & Docker Compose (optional, for containerized development)
 - Git
+- A CUDA-capable GPU is **optional** — set `MODEL_DEVICE=cpu` in `.env` to run on CPU
 
 ## Installation
 
@@ -26,10 +27,13 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Copy environment template
+# Copy environment template and configure
 cp .env.example .env
+# Edit .env:
+#   - Set MODEL_DEVICE=cpu (unless you have a CUDA GPU)
+#   - Azure fields (AZURE_*) are only needed for cloud storage; leave as-is for local dev
+#   - Set a random SECRET_KEY for development
 
-# Edit .env with your configuration
 # Then run:
 python -m app.main
 ```
@@ -53,7 +57,11 @@ Frontend will be available at: `http://localhost:3000`
 ## Docker Setup (Recommended)
 
 ```bash
-# Start all services
+# Clone the repo
+git clone https://github.com/Nj-1111/Medical-Dashboard.git
+cd Medical-Dashboard
+
+# Start all services (PostgreSQL, Redis, backend, frontend)
 docker-compose up -d
 
 # View logs
@@ -62,6 +70,8 @@ docker-compose logs -f backend
 # Stop services
 docker-compose down
 ```
+
+> **Windows shortcut**: Run `start.bat` from the repo root instead of the commands above.
 
 ## API Testing
 

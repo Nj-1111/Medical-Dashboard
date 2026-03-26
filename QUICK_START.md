@@ -20,7 +20,8 @@ A **production-grade**, **fully functional** medical diagnosis pipeline with gla
 
 ### Option 1: Docker Compose (Easiest - 2 minutes)
 ```bash
-cd C:\Users\Neel Bose\Desktop\medical-diagnosis-pipeline
+git clone https://github.com/Nj-1111/Medical-Dashboard.git
+cd Medical-Dashboard
 docker-compose up -d
 
 # Access:
@@ -28,13 +29,18 @@ docker-compose up -d
 # API Docs: http://localhost:8000/docs
 ```
 
+> **Windows**: Alternatively, double-click `start.bat` in the repo root.
+
 ### Option 2: Local Python (Development - 5 minutes)
 ```bash
 # Backend
 cd backend
 python -m venv venv
-venv\Scripts\activate
+venv\Scripts\activate     # Windows
+# source venv/bin/activate  # macOS/Linux
 pip install -r requirements.txt
+cp .env.example .env
+# Open .env and set MODEL_DEVICE=cpu if you don't have a GPU
 python -m app.main
 
 # Frontend (new terminal)
@@ -103,7 +109,7 @@ curl -X POST http://localhost:8000/api/v1/inference/models/switch-llm \
 ## 📁 Project Structure
 
 ```
-medical-diagnosis-pipeline/
+Medical-Dashboard/
 │
 ├── 📂 backend/              # FastAPI application
 │   ├── app/                 # Core app
@@ -241,8 +247,8 @@ Edit `backend/.env`:
 GLAUCOMA_MODEL_NAME=google/vit-base-patch16-224
 LLM_MODEL_NAME=mistralai/Mistral-7B-Instruct-v0.1
 
-# Hardware
-MODEL_DEVICE=cuda          # cuda for GPU, cpu for CPU
+# Hardware — use 'cpu' if you don't have a CUDA-capable GPU
+MODEL_DEVICE=cpu           # change to 'cuda' for GPU acceleration
 LOAD_MODELS_ON_STARTUP=True
 
 # Database
@@ -252,6 +258,8 @@ DB_PASSWORD=password
 
 # Security
 SECRET_KEY=your-secret-key
+
+# OAuth (optional for local development — can leave as placeholders)
 OAUTH_CLIENT_ID=your-client-id
 OAUTH_CLIENT_SECRET=your-client-secret
 ```
