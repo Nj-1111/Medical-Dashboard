@@ -51,7 +51,7 @@ logs/
 .postgres_data/
 
 # Docker
-.dockerignore
+# (note: .dockerignore is intentionally tracked in git)
 
 # React
 node_modules/

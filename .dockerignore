@@ -1,0 +1,23 @@
+# Exclude local secret/env files from being baked into Docker images
+backend/.env
+frontend/.env
+*.env
+
+# Python cache and virtual environments
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.py[cod]
+backend/venv/
+backend/.venv/
+
+# Node modules (built inside the container)
+frontend/node_modules/
+
+# Test artifacts
+backend/.pytest_cache/
+backend/htmlcov/
+backend/.coverage
+
+# Editor and OS files
+.DS_Store
+*.swp
