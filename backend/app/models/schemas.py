@@ -4,7 +4,7 @@ Pydantic models for request/response serialization
 """
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 # ============ Authentication Models ============
@@ -12,6 +12,22 @@ class LoginRequest(BaseModel):
     """User login request"""
     email: EmailStr
     password: str = Field(..., min_length=8)
+
+    @field_validator("password")
+    @classmethod
+    def password_complexity(cls, v: str) -> str:
+        errors = []
+        if not any(c.isupper() for c in v):
+            errors.append("one uppercase letter")
+        if not any(c.islower() for c in v):
+            errors.append("one lowercase letter")
+        if not any(c.isdigit() for c in v):
+            errors.append("one digit")
+        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in v):
+            errors.append("one special character")
+        if errors:
+            raise ValueError(f"Password must contain at least {', '.join(errors)}.")
+        return v
 
 
 class TokenResponse(BaseModel):
@@ -41,7 +57,7 @@ class PatientCreate(BaseModel):
     date_of_birth: str
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
-    medical_record_number: str = Field(..., unique=True)
+    medical_record_number: str = Field(...)
 
 
 class PatientUpdate(BaseModel):

@@ -77,14 +77,12 @@ class InferenceEngine:
             cls._glaucoma_processor = AutoImageProcessor.from_pretrained(
                 settings.GLAUCOMA_MODEL_NAME,
                 cache_dir=settings.MODEL_CACHE_DIR,
-                trust_remote_code=True
             )
             
             # Load model
             cls._glaucoma_model = AutoModelForImageClassification.from_pretrained(
                 settings.GLAUCOMA_MODEL_NAME,
                 cache_dir=settings.MODEL_CACHE_DIR,
-                trust_remote_code=True
             )
             
             cls._glaucoma_model.to(device)
@@ -118,14 +116,12 @@ class InferenceEngine:
             cls._llm_tokenizer = AutoTokenizer.from_pretrained(
                 settings.LLM_MODEL_NAME,
                 cache_dir=settings.MODEL_CACHE_DIR,
-                trust_remote_code=True
             )
             
             # Load model
             cls._llm_model = AutoModelForCausalLM.from_pretrained(
                 settings.LLM_MODEL_NAME,
                 cache_dir=settings.MODEL_CACHE_DIR,
-                trust_remote_code=True,
                 device_map="auto" if device == "cuda" else "cpu"
             )
             
@@ -236,7 +232,7 @@ Patient: {patient_info.get('name', 'Anonymous')}
 Age: {patient_info.get('age', 'Not specified')}
 
 Diagnosis Result: {diagnosis_result}
-Confidence: {diagnosis_result}
+Confidence: {patient_info.get('confidence', 'N/A')}
 
 {f'Additional Clinical Notes: {additional_context}' if additional_context else ''}
 
