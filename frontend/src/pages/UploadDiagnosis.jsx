@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 export default function UploadDiagnosis() {
@@ -8,8 +7,6 @@ export default function UploadDiagnosis() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
-
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };

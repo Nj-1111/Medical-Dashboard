@@ -4,7 +4,7 @@ Environment-driven settings for the medical diagnosis pipeline
 """
 import os
 from typing import Optional
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
