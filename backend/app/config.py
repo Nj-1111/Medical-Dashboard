@@ -12,6 +12,18 @@ logger = logging.getLogger(__name__)
 
 _INSECURE_SECRET_KEY = "your-secret-key-change-in-production"
 
+# Common placeholder values that must never reach production
+_WEAK_SECRET_KEYS = {
+    _INSECURE_SECRET_KEY,
+    "change-me-before-deploying",
+    "secret",
+    "changeme",
+    "password",
+    "supersecret",
+    "mysecretkey",
+}
+_MIN_SECRET_KEY_LENGTH = 32
+
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
@@ -100,18 +112,21 @@ class Settings(BaseSettings):
         return [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
 
     @model_validator(mode="after")
-    def warn_insecure_secret_key(self) -> "Settings":
-        if self.SECRET_KEY == _INSECURE_SECRET_KEY:
-            if not self.DEBUG:
-                raise ValueError(
-                    "SECRET_KEY must be set to a strong random value in production. "
-                    "Set the SECRET_KEY environment variable."
-                )
-            warnings.warn(
-                "SECRET_KEY is set to the insecure default value. "
-                "Set a strong random SECRET_KEY environment variable before deploying.",
-                stacklevel=2,
-            )
+    def validate_secret_key(self) -> "Settings":
+        is_weak = (
+            self.SECRET_KEY.lower() in _WEAK_SECRET_KEYS
+            or len(self.SECRET_KEY) < _MIN_SECRET_KEY_LENGTH
+        )
+        if not is_weak:
+            return self
+        msg = (
+            f"SECRET_KEY is insecure (known placeholder or fewer than "
+            f"{_MIN_SECRET_KEY_LENGTH} characters). "
+            "Set a strong random SECRET_KEY environment variable before deploying."
+        )
+        if not self.DEBUG:
+            raise ValueError(msg)
+        warnings.warn(msg, stacklevel=2)
         return self
 
     model_config = {"env_file": ".env", "case_sensitive": True}

@@ -11,23 +11,49 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 class LoginRequest(BaseModel):
     """User login request"""
     email: EmailStr
+    password: str = Field(..., min_length=1)
+
+
+def _validate_password_complexity(v: str) -> str:
+    """Shared password complexity checker used by registration/change-password schemas."""
+    errors = []
+    if len(v) < 8:
+        errors.append("at least 8 characters")
+    if not any(c.isupper() for c in v):
+        errors.append("one uppercase letter")
+    if not any(c.islower() for c in v):
+        errors.append("one lowercase letter")
+    if not any(c.isdigit() for c in v):
+        errors.append("one digit")
+    if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in v):
+        errors.append("one special character")
+    if errors:
+        raise ValueError(f"Password must contain {', '.join(errors)}.")
+    return v
+
+
+class UserCreate(BaseModel):
+    """New user registration request – enforces password complexity."""
+    email: EmailStr
     password: str = Field(..., min_length=8)
+    name: str = Field(..., min_length=1)
+    role: str = Field(default="user")
 
     @field_validator("password")
     @classmethod
     def password_complexity(cls, v: str) -> str:
-        errors = []
-        if not any(c.isupper() for c in v):
-            errors.append("one uppercase letter")
-        if not any(c.islower() for c in v):
-            errors.append("one lowercase letter")
-        if not any(c.isdigit() for c in v):
-            errors.append("one digit")
-        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in v):
-            errors.append("one special character")
-        if errors:
-            raise ValueError(f"Password must contain at least {', '.join(errors)}.")
-        return v
+        return _validate_password_complexity(v)
+
+
+class ChangePasswordRequest(BaseModel):
+    """Change-password request – enforces password complexity."""
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8)
+
+    @field_validator("new_password")
+    @classmethod
+    def new_password_complexity(cls, v: str) -> str:
+        return _validate_password_complexity(v)
 
 
 class TokenResponse(BaseModel):
