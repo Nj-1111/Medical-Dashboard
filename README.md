@@ -97,7 +97,9 @@ cd Medical-Dashboard
 # Copy environment template
 cp backend/.env.example backend/.env
 
-# For local development without a GPU, set MODEL_DEVICE=cpu in backend/.env
+# For running the backend manually (without Docker), set MODEL_DEVICE=cpu in backend/.env
+# When using Docker Compose, MODEL_DEVICE defaults to cpu; override by setting the
+# MODEL_DEVICE env var in your shell before running docker compose (e.g. MODEL_DEVICE=cuda)
 # Azure fields (AZURE_*) are optional and not required for local development
 ```
 
