@@ -32,7 +32,10 @@ async def lifespan(app: FastAPI):
     if settings.LOAD_MODELS_ON_STARTUP:
         logger.info("Loading ML models...")
         try:
-            from ml.inference import InferenceEngine
+            try:
+                from app.ml.inference import InferenceEngine
+            except ModuleNotFoundError:
+                from ml.inference import InferenceEngine
             InferenceEngine.initialize()
             logger.info("✓ ML models loaded successfully")
         except Exception as e:

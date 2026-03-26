@@ -16,11 +16,15 @@ from app.models.schemas import (
 )
 from app.security.auth import create_access_token, hash_password
 from app.dependencies import get_current_user, get_current_doctor
-from ml.inference import InferenceEngine
 from app.services.file_service import FileUploadService
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+try:
+    from app.ml.inference import InferenceEngine
+except ModuleNotFoundError:
+    from ml.inference import InferenceEngine
 
 # ============ Authentication Routes ============
 auth_router = APIRouter()
