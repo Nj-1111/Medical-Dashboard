@@ -4,6 +4,7 @@ Medical Diagnosis Pipeline
 """
 import logging
 import time
+import traceback
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,10 +56,10 @@ app = FastAPI(
 # CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=settings.ALLOWED_ORIGINS_LIST,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 
@@ -103,7 +104,10 @@ async def root():
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle general exceptions"""
-    logger.error(f"Unhandled exception: {str(exc)}")
+    tb_str = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    logger.error(
+        f"Unhandled exception on {request.method} {request.url.path}: {tb_str}"
+    )
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"}

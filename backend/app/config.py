@@ -2,113 +2,134 @@
 Configuration Management
 Environment-driven settings for the medical diagnosis pipeline
 """
-import os
-from typing import Optional
-from pydantic import BaseSettings
+import logging
+import warnings
+from typing import List, Optional
+from pydantic import computed_field, model_validator
+from pydantic_settings import BaseSettings
+
+logger = logging.getLogger(__name__)
+
+_INSECURE_SECRET_KEY = "your-secret-key-change-in-production"
+
+# Common placeholder values that must never reach production
+_WEAK_SECRET_KEYS = {
+    _INSECURE_SECRET_KEY,
+    "change-me-before-deploying",
+    "secret",
+    "changeme",
+    "password",
+    "supersecret",
+    "mysecretkey",
+}
+_MIN_SECRET_KEY_LENGTH = 32
 
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
-    
+
     # Application
     APP_NAME: str = "Medical Diagnosis Pipeline"
     APP_VERSION: str = "1.0.0"
-    DEBUG: bool = os.getenv("DEBUG", "False").lower() == "true"
-    
+    DEBUG: bool = False
+
     # Server
-    SERVER_HOST: str = os.getenv("SERVER_HOST", "0.0.0.0")
-    SERVER_PORT: int = int(os.getenv("SERVER_PORT", "8000"))
-    
+    SERVER_HOST: str = "0.0.0.0"
+    SERVER_PORT: int = 8000
+
     # Database Configuration
-    DB_USER: str = os.getenv("DB_USER", "postgres")
-    DB_PASSWORD: str = os.getenv("DB_PASSWORD", "password")
-    DB_HOST: str = os.getenv("DB_HOST", "localhost")
-    DB_PORT: int = int(os.getenv("DB_PORT", "5432"))
-    DB_NAME: str = os.getenv("DB_NAME", "medical_diagnosis")
-    DATABASE_URL: str = (
-        f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    )
-    
+    DB_USER: str = "postgres"
+    DB_PASSWORD: str = "password"
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+    DB_NAME: str = "medical_diagnosis"
+
+    @computed_field
+    @property
+    def DATABASE_URL(self) -> str:
+        return (
+            f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}"
+            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        )
+
     # Vector Store (Embeddings)
-    VECTOR_DB_HOST: str = os.getenv("VECTOR_DB_HOST", "localhost")
-    VECTOR_DB_PORT: int = int(os.getenv("VECTOR_DB_PORT", "6379"))
-    
+    VECTOR_DB_HOST: str = "localhost"
+    VECTOR_DB_PORT: int = 6379
+
     # Azure Configuration
-    AZURE_SUBSCRIPTION_ID: str = os.getenv("AZURE_SUBSCRIPTION_ID", "")
-    AZURE_RESOURCE_GROUP: str = os.getenv("AZURE_RESOURCE_GROUP", "")
-    AZURE_STORAGE_ACCOUNT: str = os.getenv("AZURE_STORAGE_ACCOUNT", "")
-    AZURE_STORAGE_KEY: str = os.getenv("AZURE_STORAGE_KEY", "")
-    AZURE_BLOB_CONTAINER: str = os.getenv("AZURE_BLOB_CONTAINER", "medical-images")
-    AZURE_KEY_VAULT_URL: str = os.getenv("AZURE_KEY_VAULT_URL", "")
-    
+    AZURE_SUBSCRIPTION_ID: str = ""
+    AZURE_RESOURCE_GROUP: str = ""
+    AZURE_STORAGE_ACCOUNT: str = ""
+    AZURE_STORAGE_KEY: str = ""
+    AZURE_BLOB_CONTAINER: str = "medical-images"
+    AZURE_KEY_VAULT_URL: str = ""
+
     # ML Model Configuration (Configurable per user)
     # These can be changed by simply updating the config
-    GLAUCOMA_MODEL_NAME: str = os.getenv(
-        "GLAUCOMA_MODEL_NAME", 
-        "google/vit-base-patch16-224"  # HuggingFace model ID
-    )
-    GLAUCOMA_MODEL_VERSION: str = os.getenv("GLAUCOMA_MODEL_VERSION", "1.0.0")
-    
-    LLM_MODEL_NAME: str = os.getenv(
-        "LLM_MODEL_NAME",
-        "mistralai/Mistral-7B-Instruct-v0.1"  # HuggingFace model ID
-    )
-    LLM_MODEL_VERSION: str = os.getenv("LLM_MODEL_VERSION", "1.0.0")
-    
+    GLAUCOMA_MODEL_NAME: str = "google/vit-base-patch16-224"  # HuggingFace model ID
+    GLAUCOMA_MODEL_VERSION: str = "1.0.0"
+
+    LLM_MODEL_NAME: str = "mistralai/Mistral-7B-Instruct-v0.1"  # HuggingFace model ID
+    LLM_MODEL_VERSION: str = "1.0.0"
+
     # Model Loading Configuration
-    LOAD_MODELS_ON_STARTUP: bool = (
-        os.getenv("LOAD_MODELS_ON_STARTUP", "True").lower() == "true"
-    )
-    MODEL_CACHE_DIR: str = os.getenv("MODEL_CACHE_DIR", "./model_cache")
-    MODEL_DEVICE: str = os.getenv("MODEL_DEVICE", "cuda")  # cuda or cpu
-    
+    LOAD_MODELS_ON_STARTUP: bool = True
+    MODEL_CACHE_DIR: str = "./model_cache"
+    MODEL_DEVICE: str = "cuda"  # cuda or cpu
+
     # Security & Authentication
-    SECRET_KEY: str = os.getenv(
-        "SECRET_KEY",
-        "your-secret-key-change-in-production"
-    )
+    SECRET_KEY: str = _INSECURE_SECRET_KEY
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    
+
     # OAuth/OIDC Configuration
-    OIDC_DISCOVERY_URL: str = os.getenv(
-        "OIDC_DISCOVERY_URL",
+    OIDC_DISCOVERY_URL: str = (
         "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
     )
-    OAUTH_CLIENT_ID: str = os.getenv("OAUTH_CLIENT_ID", "")
-    OAUTH_CLIENT_SECRET: str = os.getenv("OAUTH_CLIENT_SECRET", "")
-    OAUTH_REDIRECT_URI: str = os.getenv(
-        "OAUTH_REDIRECT_URI",
-        "http://localhost:3000/callback"
-    )
-    
+    OAUTH_CLIENT_ID: str = ""
+    OAUTH_CLIENT_SECRET: str = ""
+    OAUTH_REDIRECT_URI: str = "http://localhost:3000/callback"
+
     # File Upload Configuration
     MAX_UPLOAD_SIZE_MB: int = 50
-    ALLOWED_FILE_EXTENSIONS: list = ["jpg", "jpeg", "png", "dcm", "pdf"]
-    
+    ALLOWED_FILE_EXTENSIONS: List[str] = ["jpg", "jpeg", "png", "dcm", "pdf"]
+
     # Virus Scanning
-    ENABLE_VIRUS_SCAN: bool = (
-        os.getenv("ENABLE_VIRUS_SCAN", "True").lower() == "true"
-    )
-    CLAMAV_HOST: str = os.getenv("CLAMAV_HOST", "localhost")
-    CLAMAV_PORT: int = int(os.getenv("CLAMAV_PORT", "3310"))
-    
+    ENABLE_VIRUS_SCAN: bool = True
+    CLAMAV_HOST: str = "localhost"
+    CLAMAV_PORT: int = 3310
+
     # Logging & Audit
-    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
-    AUDIT_LOG_ENABLED: bool = (
-        os.getenv("AUDIT_LOG_ENABLED", "True").lower() == "true"
-    )
-    
-    # CORS Configuration
-    ALLOWED_ORIGINS: list = [
-        "http://localhost:3000",
-        "http://localhost:8000",
-        os.getenv("ALLOWED_ORIGINS", "http://localhost:3000")
-    ]
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    LOG_LEVEL: str = "INFO"
+    AUDIT_LOG_ENABLED: bool = True
+
+    # CORS Configuration – comma-separated origins in the env var ALLOWED_ORIGINS
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8000"
+
+    @computed_field
+    @property
+    def ALLOWED_ORIGINS_LIST(self) -> List[str]:
+        return [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
+
+    @model_validator(mode="after")
+    def validate_secret_key(self) -> "Settings":
+        is_weak = (
+            self.SECRET_KEY.lower() in _WEAK_SECRET_KEYS
+            or len(self.SECRET_KEY) < _MIN_SECRET_KEY_LENGTH
+        )
+        if not is_weak:
+            return self
+        msg = (
+            f"SECRET_KEY is insecure (known placeholder or fewer than "
+            f"{_MIN_SECRET_KEY_LENGTH} characters). "
+            "Set a strong random SECRET_KEY environment variable before deploying."
+        )
+        if not self.DEBUG:
+            raise ValueError(msg)
+        warnings.warn(msg, stacklevel=2)
+        return self
+
+    model_config = {"env_file": ".env", "case_sensitive": True}
 
 
 # Initialize settings

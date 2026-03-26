@@ -2,6 +2,7 @@
 API Routes
 All endpoint routes for the application
 """
+import re
 from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File
 from fastapi.responses import FileResponse
 from datetime import datetime, timedelta
@@ -21,6 +22,19 @@ from app.services.file_service import FileUploadService
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+# Allowed HuggingFace model name pattern: "org/model-name" or "model-name"
+# Dots are allowed (e.g. v0.1) but consecutive dots (..) are not.
+_MODEL_NAME_RE = re.compile(r"^[A-Za-z0-9_\-][A-Za-z0-9_\-\.]*(/[A-Za-z0-9_\-][A-Za-z0-9_\-\.]*)?$")
+
+
+def _validate_model_name(model_name: str) -> None:
+    """Raise 400 if the model name does not look like a valid HuggingFace id."""
+    if not _MODEL_NAME_RE.match(model_name) or ".." in model_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid model name. Use the format 'org/model-name' or 'model-name'.",
+        )
 
 # ============ Authentication Routes ============
 auth_router = APIRouter()
@@ -246,6 +260,7 @@ async def switch_glaucoma_model(
     Switch to a different glaucoma model
     Just change the model name!
     """
+    _validate_model_name(model_name)
     success = InferenceEngine.switch_glaucoma_model(model_name)
     if success:
         return {
@@ -266,6 +281,7 @@ async def switch_llm_model(
     Switch to a different LLM model
     Just change the model name!
     """
+    _validate_model_name(model_name)
     success = InferenceEngine.switch_llm_model(model_name)
     if success:
         return {

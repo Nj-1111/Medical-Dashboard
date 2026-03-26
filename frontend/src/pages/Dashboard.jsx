@@ -7,6 +7,7 @@ export default function Dashboard() {
   const [newGlaucomaModel, setNewGlaucomaModel] = useState('');
   const [newLLMModel, setNewLLMModel] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export default function Dashboard() {
     if (!newGlaucomaModel) return;
     
     setLoading(true);
+    setError(null);
     try {
       await api.post('/inference/models/switch-glaucoma', null, {
         params: { model_name: newGlaucomaModel }
@@ -33,7 +35,7 @@ export default function Dashboard() {
       setNewGlaucomaModel('');
       await fetchModelStatus();
     } catch (err) {
-      alert('Error switching model: ' + err.response?.data?.detail);
+      setError('Error switching glaucoma model: ' + (err.response?.data?.detail || err.message));
     } finally {
       setLoading(false);
     }
@@ -43,6 +45,7 @@ export default function Dashboard() {
     if (!newLLMModel) return;
     
     setLoading(true);
+    setError(null);
     try {
       await api.post('/inference/models/switch-llm', null, {
         params: { model_name: newLLMModel }
@@ -50,7 +53,7 @@ export default function Dashboard() {
       setNewLLMModel('');
       await fetchModelStatus();
     } catch (err) {
-      alert('Error switching model: ' + err.response?.data?.detail);
+      setError('Error switching LLM model: ' + (err.response?.data?.detail || err.message));
     } finally {
       setLoading(false);
     }
@@ -61,6 +64,12 @@ export default function Dashboard() {
   return (
     <div className="max-w-4xl mx-auto p-8">
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+
+      {error && (
+        <div className="p-4 bg-red-100 text-red-700 rounded-lg mb-6">
+          {error}
+        </div>
+      )}
 
       {/* Model Status */}
       <div className="grid grid-cols-2 gap-6 mb-8">
