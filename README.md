@@ -79,7 +79,18 @@ Medical Diagnosis Pipeline is a **production-grade** full-stack application desi
 
 ---
 
-## 🚀 Quick Start
+## � Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Comprehensive setup and deployment instructions |
+| [QUICK_START.md](QUICK_START.md) | Fast startup instructions |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System design and architecture |
+| [SETUP.md](SETUP.md) | Detailed installation guide |
+
+---
+
+## �🚀 Quick Start
 
 ### Prerequisites
 - Python 3.11+
